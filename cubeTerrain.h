@@ -93,8 +93,8 @@ public:
 			}
 		}
 		
-		for (int x = 0; x < chunksize - 1; x++) { //connect vertices into triangles
-			for (int y = 0; y < chunksize - 1; y++) {
+		for (int x = 0; x < chunksize - 2; x++) { //connect vertices into triangles
+			for (int y = 0; y < chunksize - 2; y++) {
 				//first triangle in a square
 				squarePrim->add_vertex(vertexMap[x][y][noiseMap[x][y]]);
 				squarePrim->add_vertex(vertexMap[x + 1][y][noiseMap[x][y]]);
