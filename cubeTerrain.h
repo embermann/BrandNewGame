@@ -157,7 +157,7 @@ public:
 			}
 		}
 
-		connectVertices(); //TOP
+		
 		
 
 
