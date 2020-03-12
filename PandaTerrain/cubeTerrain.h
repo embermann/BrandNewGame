@@ -19,13 +19,13 @@ class cubeTerrain {
 public:
 
 	cubeTerrain() {
-		
+
 		terrainNode = NodePath("terrain_node");
 		terrainNode.set_pos(0, 0, 0);
 
 		for (int x = 0; x < chunksize + 1; x++) {
 			for (int y = 0; y < chunksize + 1; y++) {
-				for (int z = 0; z < height; z++) {
+				for (int z = 0; z < height + 1; z++) {
 					vertexMap[x][y][z] = -1;
 				}
 			}
@@ -39,6 +39,12 @@ public:
 		for (int x = 0; x < chunksize; x++) {
 			for (int y = 0; y < chunksize; y++) {
 				noiseMap[x][y] = noiseM[x][y];
+				if (noiseMap[x][y] < min_height) {
+					min_height = noiseMap[x][y];
+				}
+				if (noiseMap[x][y] > max_height) {
+					max_height = noiseMap[x][y];
+				}
 			}
 		}
 	}
@@ -58,13 +64,13 @@ public:
 
 		for (int x = 0; x < chunksize; x++) { //Generating surface vertices
 			for (int y = 0; y < chunksize; y++) {
-				
+
 
 				vertex.add_data3(x, y, noiseMap[x][y]); //palce a vertex in a lower left corner
 				normal.add_data3(0, 0, 1);
 
 				vertexMap[x][y][noiseMap[x][y]] = vertexID; //remember the ID of it
-				vertexID++; 
+				vertexID++;
 
 				if ((x == chunksize - 1) || (y == chunksize - 1)) {
 					vertex.add_data3(x, y + 1, noiseMap[x][y]); //palce a vertex in a upper left corner
@@ -124,19 +130,21 @@ public:
 					}
 				}
 
-				for (int z = noiseMap[x][y] - 1; z < saved_z; z++) { //repeat untill the last vertex
-					if (vertexMap[x][y][z] = -1) {
+				for (int z = noiseMap[x][y] - 1; z > saved_z; z--) { //repeat untill the last vertex
+					if (vertexMap[x][y][z] == -1) {
 						vertex.add_data3(x, y, z); //palce a vertex
 						normal.add_data3(0, 0, 0); //????
+
+						vertexMap[x][y][z] = vertexID; //remember the ID of it
+						vertexID++;
 					}
 
-					vertexMap[x][y][z] = vertexID; //remember the ID of it
-					vertexID++;
+
 				}
 
 			}
 		}
-		
+
 		for (int x = 0; x < chunksize; x++) { //connect vertices into triangles
 			for (int y = 0; y < chunksize; y++) {
 				//first triangle in a square
@@ -151,7 +159,27 @@ public:
 			}
 		}
 
-		
+		for (int x = 0; x < chunksize; x++) {
+			for (int y = 0; y < chunksize; y++) {
+				for (int z = min_height; z < max_height; z++) {
+					if ((vertexMap[x + 1][y][z + 1] != -1) && (vertexMap[x][y][z] != -1) && (vertexMap[x][y][z + 1] != -1) && (vertexMap[x + 1][y][z] != -1)) {
+						//first triangle in a square
+						squarePrim->add_vertex(vertexMap[x][y][z]);
+						squarePrim->add_vertex(vertexMap[x][y][z + 1]);
+						squarePrim->add_vertex(vertexMap[x + 1][y][z]);
+
+						//second triangle in a square
+						squarePrim->add_vertex(vertexMap[x + 1][y][z + 1]);
+						squarePrim->add_vertex(vertexMap[x + 1][y][z]);
+						squarePrim->add_vertex(vertexMap[x][y][z + 1]);
+					}
+
+					//cout << "lol";
+				}
+			}
+		}
+
+
 
 		//Create GeomNode
 		PT(Geom) square = new Geom(vData);
@@ -171,8 +199,10 @@ public:
 private:
 
 	int noiseMap[chunksize][chunksize];
-	int vertexMap[chunksize + 1][chunksize + 1][height];
+	int vertexMap[chunksize + 1][chunksize + 1][height + 1];
 	int vertexID = 0;
+	int min_height = height;
+	int max_height = 0;
 	NodePath terrainNode;
 
 	PT(GeomVertexData) vData = new GeomVertexData("square", GeomVertexFormat::get_v3n3(), Geom::UH_static);
@@ -181,7 +211,7 @@ private:
 	/*
 	ID vertex normal
 	0  0 0 0  0 0 1
-	1  
+	1
 	2
 
 
