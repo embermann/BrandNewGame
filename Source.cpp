@@ -92,8 +92,8 @@ int main(int argc, char* argv[]) {
     float noise;
 
     //Create and setup cubeTerrain
-    for (int x1 = 0; x1 < 50; x1++) {
-        for (int y1 = 0; y1 < 50; y1++) {
+    for (int x1 = 0; x1 < 20; x1++) {
+        for (int y1 = 0; y1 < 20; y1++) {
 
             for (int x = 0; x < 16; x++) {
                 for (int y = 0; y < 16; y++) {
