@@ -81,12 +81,12 @@ int main(int argc, char* argv[]) {
     NodePath camera;
     camera = window->get_camera_group();
     camera.set_pos(0, 0, 10);
-    camera.set_p(-45);
+    //camera.set_p(-45);
 
     //Camera control
     window->setup_trackball();
 
-    int noiseMap[chunksize][chunksize];  
+    int noiseMap[chunksize + 2][chunksize + 2];  
     PerlinNoise2 NoiseGen(0, 0, chunksize, 0);
     NoiseGen.set_scale(50);
     float noise;
@@ -95,12 +95,20 @@ int main(int argc, char* argv[]) {
     for (int x1 = 0; x1 < 20; x1++) {
         for (int y1 = 0; y1 < 20; y1++) {
 
-            for (int x = 0; x < chunksize; x++) {
-                for (int y = 0; y < chunksize; y++) {
-                    noise = NoiseGen.noise(x + x1 * chunksize, y + y1 * chunksize);
-                    noise = noise * 50 + 50;
+            for (int x = 0; x < chunksize + 1; x++) { //Chunk and 1 row above and 1 column to the right
+                for (int y = 0; y < chunksize + 1; y++) {
+                    noise = NoiseGen.noise(x + x1 * chunksize, y + y1 * chunksize); //.noise returns between -1 and 1
+                    noise = noise * (height / 2) + (height / 2); 
                     noiseMap[x][y] = noise;
                 }
+            }
+            for (int x = 0; x < chunksize; x++) { //1 row below
+                noise = NoiseGen.noise(x + x1 * chunksize, -1 + y1 * chunksize);
+                noiseMap[x][chunksize + 1] = noise * (height / 2) + (height / 2);
+            }
+            for (int y = 0; y < chunksize; y++) { //1 column to the left
+                noise = NoiseGen.noise(-1 + x1 * chunksize, y + y1 * chunksize);
+                noiseMap[chunksize + 1][y] = noise * (height / 2) + (height / 2);
             }
 
             cubeTerrain terrain1;
@@ -123,8 +131,12 @@ int main(int argc, char* argv[]) {
     PT(DirectionalLight) d_light;
     d_light = new DirectionalLight("my d_light");
     NodePath dlnp = window->get_render().attach_new_node(d_light);
-    dlnp.set_hpr(0, -45, 0);
+    dlnp.set_hpr(-45, -45, 0);
     window->get_render().set_light(dlnp);
+
+    //Enable shadows
+    d_light->set_shadow_caster(true, 512, 512);
+    window->get_render().set_shader_auto();
 
     PT(AmbientLight) a_light;
     a_light = new AmbientLight("my a_light");
